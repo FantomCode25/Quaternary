@@ -198,48 +198,55 @@ const HeroSection = () => {
         ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
         try {
-          // Convert canvas to image data URL
-          const imageData = canvas.toDataURL("image/jpeg");
+          // Convert canvas to blob
+          const blob = await new Promise<Blob>((resolve) => {
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+            }, 'image/jpeg');
+          });
 
-          // First, set local state to show the image immediately
-          setCapturedImage(imageData);
+          // Create FormData and append the image
+          const formData = new FormData();
+          formData.append('file', blob, 'captured.jpg');
+
+          // Send to Flask server
+          const response = await fetch('http://127.0.0.1:5000/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to process image');
+          }
+
+          const result = await response.json();
+          console.log('ML Prediction Result:', result);
+          
+          // Set the captured image and ML result
+          setCapturedImage(URL.createObjectURL(blob));
           setShowCamera(false);
           stopCamera();
+          
+          // Decrement uploads after successful capture
+          decrementUploads();
 
-          // Then, save the image to the server
-          try {
-            const response = await fetch("/api/save-image", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ imageData }),
-            });
+          // Show success message with prediction result
+          const successMessage = `
+            🎉 Image Successfully Processed! 🎉
+            
+            📸 Image: Captured Image
+            🗑️ Predicted Waste Type: ${result.predicted_class}
+            💯 Confidence: ${result.confidence.toFixed(2)}%
+            
+            ♻️ Recycling Categories:
+            ${result.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
+          `;
+          
+          alert(successMessage);
 
-            if (!response.ok) {
-              throw new Error("Failed to save image to server");
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-              // Update the image URL to the saved file path
-              setCapturedImage(data.url);
-              console.log("Image saved to:", data.url);
-            }
-
-            // Decrement uploads after successful capture
-            decrementUploads();
-          } catch (serverError) {
-            console.error("Error saving image to server:", serverError);
-            // The user can still see the captured image, but it wasn't saved to the server
-            alert(
-              "The image was captured but couldn't be saved to the server."
-            );
-          }
-        } catch (e) {
-          console.error("Error capturing image:", e);
-          alert("Failed to capture image. Please try again.");
+        } catch (error) {
+          console.error('Error capturing/processing image:', error);
+          alert('Failed to process image. Please try again.');
         }
       }
     }
@@ -265,30 +272,68 @@ const HeroSection = () => {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File change event triggered');
     const file = e.target.files?.[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append("image", file);
+    
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
 
-      try {
-        const response = await fetch("http://localhost:8080/upload", {
-          method: "POST",
-          body: formData,
-        });
+    console.log('Selected file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
 
-        if (!response.ok) {
-          throw new Error("Upload failed");
-        }
+    const formData = new FormData();
+    formData.append('file', file);
 
-        const data = await response.json();
-        setCapturedImage(data.url);
+    try {
+      console.log('Sending request to Flask server...');
+      const response = await fetch('http://127.0.0.1:5000/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Server response:', result);
+      
+      if (result.success) {
+        // Set the uploaded image
+        setCapturedImage(URL.createObjectURL(file));
+        
         // Decrement uploads after successful upload
         decrementUploads();
-        console.log("Image uploaded successfully:", data.url);
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        alert("Failed to upload image. Please try again.");
+
+        // Show success message with prediction result
+        const successMessage = `
+          🎉 Image Successfully Processed! 🎉
+          
+          📸 Image: ${file.name}
+          🗑️ Predicted Waste Type: ${result.predicted_class}
+          💯 Confidence: ${result.confidence.toFixed(2)}%
+          
+          ♻️ Recycling Categories:
+          ${result.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
+        `;
+        
+        alert(successMessage);
+      } else {
+        throw new Error('Failed to process image');
       }
+      
+    } catch (error) {
+      console.error('Error details:', error);
+      alert('Failed to process image. Please check console for details.');
     }
   };
 
