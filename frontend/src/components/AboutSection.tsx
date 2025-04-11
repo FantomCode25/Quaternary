@@ -38,7 +38,7 @@ const AboutSection = () => {
       icon: <FaExchangeAlt className="text-4xl text-green-500" />,
       title: "Reuse",
       description:
-        "Discover creative ways to repurpose items instead of discarding them.",
+        "Instead of discarding items, find ways to reuse them.",
     },
     {
       icon: <FaShoppingCart className="text-4xl text-green-500" />,
