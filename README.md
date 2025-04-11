@@ -6,25 +6,25 @@
 **Hackathon:** FANTOMCODE '25  
 **Date:** 11th and 12th April 2025
 
----
+
 
 ## 📖 Table of Contents
 
-1. [Introduction](#-introduction)
-2. [Problem Statement](#-problem-statement)
-3. [Solution Overview](#-solution-overview)
-4. [Tech Stack](#-tech-stack)
-5. [Architecture / Diagram](#-architecture--diagram)
-6. [Installation & Usage](#-installation--usage)
-7. [Team Members](#-team-members)
+1. Introduction
+2. Problem Statement
+3. Solution Overview
+4. Tech Stack
+5. Architecture / Diagram
+6. Installation & Usage
+7. Team Members
 
----
+
 
 ## 🧠 Introduction
 
 3RVision is a comprehensive sustainability analysis platform that helps users make informed decisions about product lifecycle management. By analyzing product images, our platform provides detailed insights into how you can extend a product's life through three key sustainability pillars: reuse, recycle, and resale. Whether you're looking to dispose of items responsibly or make sustainable purchasing decisions, 3RVision guides you towards environmentally conscious choices.
 
----
+
 
 ## 🔍 Problem Statement
 
@@ -35,7 +35,7 @@ In today's consumer-driven world, we face several critical challenges:
 - Environmental impact of improper product disposal
 - Complex decision-making process for sustainable product lifecycle management
 
----
+
 
 ## ✅ Solution Overview
 
@@ -63,7 +63,7 @@ In today's consumer-driven world, we face several critical challenges:
 - Share images and tips
 - Connect with like-minded individuals
 
----
+
 
 ## 🛠️ Tech Stack
 
@@ -91,13 +91,14 @@ In today's consumer-driven world, we face several critical challenges:
 - Computer Vision models
 - Flask server
 
----
+
 
 ## 🧩 Architecture
 
+<img width="393" alt="Screenshot 2025-04-12 at 5 05 08 AM" src="https://github.com/user-attachments/assets/557866d7-6757-4354-8843-7f55b74c1d39" />
 
 
----
+
 
 ## ☘️ Installation & Usage
 
@@ -145,7 +146,6 @@ S3_BUCKET_NAME=your_bucket_name
 FLASK_SERVER_URL=http://localhost:5000
 ```
 
----
 
 ## 👥 Team Members
 
