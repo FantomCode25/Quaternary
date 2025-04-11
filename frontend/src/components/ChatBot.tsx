@@ -338,7 +338,7 @@ const ChatBot = () => {
           }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center text-xl sm:text-2xl hover:shadow-xl transition-all animate-pulse-green relative z-[9999]"
+          className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-green-200 text-white shadow-lg flex items-center justify-center text-xl sm:text-2xl hover:shadow-xl transition-all animate-pulse relative z-[9999]"
           style={{
             boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
             transform: "translateZ(0)",

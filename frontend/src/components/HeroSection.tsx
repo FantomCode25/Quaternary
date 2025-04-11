@@ -299,7 +299,7 @@ const HeroSection = () => {
   return (
     <div
       id="hero"
-      className="relative h-screen w-full bg-gradient-to-b from-green-900/10 via-teal-900/70 to-green-900/40 overflow-hidden pt-16"
+      className="relative h-screen w-full backdrop-blur-lg bg-gradient-to-b from-green-900/10 via-teal-900/70 to-green-900/40 overflow-hidden pt-16"
     >
       {/* Background elements */}
       <div className="absolute mt-16 inset-0">

@@ -106,7 +106,7 @@ const Navbar = () => {
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center"
               >
-                <img src="/logo.png" alt="Logo" className="md:h-20 h-18 mt-3 w-auto" />
+                <img src="/logo.png" alt="Logo" className="md:h-20 h-16 mt-3 w-auto" />
               </motion.div>
             </Link>
 
