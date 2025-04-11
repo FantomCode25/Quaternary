@@ -37,23 +37,23 @@ const CommunitySection = () => {
   // Define the features array
   const features = [
     {
-      icon: <FaUsers className="text-green-600 text-4xl" />,
+      icon: <FaUsers className="text-green-400 text-4xl" />,
       title: "Community Engagement",
       description:
         "Connect with like-minded individuals passionate about sustainability.",
     },
     {
-      icon: <FaLightbulb className="text-green-600 text-4xl" />,
+      icon: <FaLightbulb className="text-green-400 text-4xl" />,
       title: "Innovative Ideas",
       description: "Share and discover innovative ideas for waste management.",
     },
     {
-      icon: <FaHandshake className="text-green-600 text-4xl" />,
+      icon: <FaHandshake className="text-green-400 text-4xl" />,
       title: "Collaborative Efforts",
       description: "Work together to create impactful solutions.",
     },
     {
-      icon: <FaComments className="text-green-600 text-4xl" />,
+      icon: <FaComments className="text-green-400 text-4xl" />,
       title: "Open Discussions",
       description: "Engage in meaningful discussions about sustainability.",
     },
@@ -90,7 +90,7 @@ const CommunitySection = () => {
             >
               <div className="flex flex-col items-center text-center">
                 <div className="mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-green-600 mb-2">
+                <h3 className="text-xl font-semibold text-green-500 mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-white">{feature.description}</p>

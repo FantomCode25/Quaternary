@@ -7,6 +7,10 @@ import {
   FaMapMarkerAlt,
   FaCheckCircle,
   FaExclamationCircle,
+  FaFacebookF,
+  FaTwitter,
+  FaInstagram,
+  FaLinkedinIn,
 } from "react-icons/fa";
 import { useState } from "react";
 
@@ -150,7 +154,7 @@ const ContactSection = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
             variants={fadeInUp}
-            className="card bg-green-50"
+            className="card bg-green-100"
           >
             <h3 className="text-2xl font-semibold text-gray-800 mb-6">
               Send us a message
@@ -185,7 +189,7 @@ const ContactSection = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border bg-green-50 text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                   disabled={status.loading}
                 />
@@ -204,7 +208,7 @@ const ContactSection = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border text-black bg-green-50 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                   disabled={status.loading}
                 />
@@ -223,7 +227,7 @@ const ContactSection = () => {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-2 border text-black bg-green-50 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                   disabled={status.loading}
                 />
@@ -242,7 +246,7 @@ const ContactSection = () => {
                   value={formData.message}
                   onChange={handleChange}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black "
+                  className="w-full px-4 py-2 border bg-green-50 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-black "
                   required
                   disabled={status.loading}
                 ></textarea>
@@ -310,7 +314,7 @@ const ContactSection = () => {
                 rel={
                   item.title === "Location" ? "noopener noreferrer" : undefined
                 }
-                className="flex items-start p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200"
+                className="flex items-start p-4 bg-green-100 rounded-lg hover:bg-green-200 transition-colors duration-200"
                 whileHover={{ scale: 1.02, x: 5 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -332,7 +336,7 @@ const ContactSection = () => {
 
             {/* Social media section remains unchanged */}
             <motion.div
-              className="mt-8 p-6 bg-green-50 rounded-lg"
+              className="mt-8 p-6 bg-green-100 rounded-lg"
               whileHover={{ y: -5 }}
               transition={{ duration: 0.3 }}
             >
@@ -345,34 +349,46 @@ const ContactSection = () => {
               </p>
               <div className="flex space-x-4">
                 {/* Social media icons */}
-                <motion.div
-                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white"
+                <motion.a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors"
                   whileHover={{ scale: 1.1, rotate: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  FB
-                </motion.div>
-                <motion.div
-                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white"
+                  <FaFacebookF size={18} />
+                </motion.a>
+                <motion.a
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors"
                   whileHover={{ scale: 1.1, rotate: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  TW
-                </motion.div>
-                <motion.div
-                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white"
+                  <FaTwitter size={18} />
+                </motion.a>
+                <motion.a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors"
                   whileHover={{ scale: 1.1, rotate: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  IG
-                </motion.div>
-                <motion.div
-                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white"
+                  <FaInstagram size={18} />
+                </motion.a>
+                <motion.a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white hover:bg-green-700 transition-colors"
                   whileHover={{ scale: 1.1, rotate: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  LI
-                </motion.div>
+                  <FaLinkedinIn size={18} />
+                </motion.a>
               </div>
             </motion.div>
           </motion.div>

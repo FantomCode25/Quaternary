@@ -213,7 +213,7 @@ const HowToUseSection = () => {
       className="py-12 relative overflow-hidden bg-transparent"
       id="how-to-use"
     >
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-10 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}

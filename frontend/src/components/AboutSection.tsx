@@ -108,59 +108,7 @@ const AboutSection = () => {
         </div>
       )} */}
 
-      {/* Environmental impact indicators */}
-      <div className="absolute top-10 right-10 flex flex-col space-y-4 opacity-70">
-        <motion.div
-          className="flex items-center space-x-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 0.7, x: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <FaTree className="text-green-500 text-xl" />
-          <div className="h-2 w-24 bg-green-100 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: "85%" }}
-              transition={{ duration: 1.5, delay: 0.5 }}
-            />
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="flex items-center space-x-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 0.7, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <FaWater className="text-green-500 text-xl" />
-          <div className="h-2 w-24 bg-green-100 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: "92%" }}
-              transition={{ duration: 1.5, delay: 0.7 }}
-            />
-          </div>
-        </motion.div>
-
-        <motion.div
-          className="flex items-center space-x-2"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 0.7, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <FaRecycle className="text-green-500 text-xl" />
-          <div className="h-2 w-24 bg-green-100 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: "78%" }}
-              transition={{ duration: 1.5, delay: 0.9 }}
-            />
-          </div>
-        </motion.div>
-      </div>
+     
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div

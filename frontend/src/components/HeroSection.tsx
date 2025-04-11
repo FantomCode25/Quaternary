@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import Earth3D from "./Earth3D";
@@ -367,11 +367,10 @@ const HeroSection = () => {
               whileTap={isCameraReady ? { scale: 0.95 } : {}}
               onClick={captureImage}
               disabled={!isCameraReady}
-              className={`px-6 py-3 text-white rounded-lg transition-colors duration-200 shadow-lg ${
-                isCameraReady
+              className={`px-6 py-3 text-white rounded-lg transition-colors duration-200 shadow-lg ${isCameraReady
                   ? "bg-green-600 hover:bg-green-700"
                   : "bg-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               {isCameraReady ? "Capture" : "Waiting for camera..."}
             </motion.button>
@@ -424,14 +423,130 @@ const HeroSection = () => {
           transition={{ duration: 0.8 }}
           className="mb-2"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
-            Redefining Waste Management
-          </h1>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="relative"
+          >
+            <motion.h1 
+              initial={{ 
+                opacity: 0, 
+                y: -50,
+                scale: 0.5,
+                rotate: -10
+              }}
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                scale: 1,
+                rotate: 0
+              }}
+              transition={{ 
+                duration: 1.2,
+                type: "spring",
+                stiffness: 100,
+                damping: 10,
+                delay: 0.2
+              }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white mb-12 drop-shadow-lg relative z-10 tracking-tight"
+              style={{ 
+                fontFamily: "'Montserrat', 'Poppins', sans-serif",
+                letterSpacing: "-0.02em"
+              }}
+            >
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.0 }}
+                className="inline-block"
+                style={{ 
+                  fontFamily: "'Montserrat', 'Poppins', sans-serif",
+                  letterSpacing: "-0.03em"
+                }}
+              >
+                Welcome to{" "}
+                <motion.span
+                  initial={{ color: "#ffffff" }}
+                  animate={{ 
+                    color: ["#ffffff", "#4ade80", "#ffffff"],
+                    textShadow: [
+                      "0 0 0px rgba(74, 222, 128, 0)",
+                      "0 0 20px rgba(74, 222, 128, 0.8)",
+                      "0 0 0px rgba(74, 222, 128, 0)"
+                    ]
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    delay: 0.5,
+                    repeat: Infinity,
+                    repeatDelay: 2
+                  }}
+                  className="text-green-200 font-black"
+                  style={{ 
+                    fontFamily: "'Montserrat', 'Poppins', sans-serif",
+                    letterSpacing: "-0.03em"
+                  }}
+                >
+                  3RVision
+                </motion.span>
+                !
+              </motion.span>
+            </motion.h1>
+            
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.2 }}
+              transition={{ 
+                duration: 1,
+                delay: 0.5,
+                type: "spring",
+                stiffness: 50
+              }}
+              className="absolute -inset-4 bg-green-500/20 rounded-full blur-xl"
+            />
+            
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.15 }}
+              transition={{ 
+                duration: 1.2,
+                delay: 0.8,
+                type: "spring",
+                stiffness: 40
+              }}
+              className="absolute -inset-6 bg-blue-500/20 rounded-full blur-xl"
+            />
+          </motion.div>
 
-          <p className="text-xl md:text-2xl text-white mb-8 max-w-2xl mx-auto drop-shadow-lg">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              duration: 0.8,
+              delay: 0.3,
+              type: "spring",
+              stiffness: 100,
+              damping: 15
+            }}
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg"
+            style={{ 
+              fontFamily: "'Montserrat', 'Poppins', sans-serif",
+              letterSpacing: "-0.01em"
+            }}
+          >
+            Redefining Resource Management
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="text-base sm:text-lg md:text-xl lg:text-xl text-white mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto drop-shadow-lg"
+          >
             Empowering sustainable choices through AI-driven intelligence for
-            Reuse, Recycle, and Resale.
-          </p>
+            <span className="font-semibold"> Reuse</span>, <span className="font-semibold">Recycle</span> and <span className="font-semibold">Resale</span>.
+          </motion.p>
         </motion.div>
 
         <motion.div
@@ -441,24 +556,24 @@ const HeroSection = () => {
           className="flex flex-col items-center justify-center gap-4"
         >
           {/* Buttons row */}
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleScanImage}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
             >
-              <FaCamera className="text-xl" />
-              <span>{showCamera ? "Capture Image" : "Scan Image"}</span>
+              <FaCamera className="text-lg sm:text-xl" />
+              <span>{showCamera ? "Capture Image" : "Scan Item"}</span>
             </motion.button>
 
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleUploadImage}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
             >
-              <FaUpload className="text-xl" />
+              <FaUpload className="text-lg sm:text-xl" />
               <span>Upload Image</span>
             </motion.button>
 
@@ -466,9 +581,9 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleChromeExtension}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
             >
-              <FaChrome className="text-xl" />
+              <FaChrome className="text-lg sm:text-xl" />
               <span>Chrome Extension</span>
             </motion.button>
           </div>
@@ -478,12 +593,12 @@ const HeroSection = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center bg-white/20 backdrop-blur-md rounded-lg p-3 mt-3 text-white max-w-md shadow-lg"
+              className="text-center bg-white/20 backdrop-blur-md rounded-lg p-2 mt-3 text-white max-w-md shadow-lg mx-4 sm:mx-auto"
             >
-              <p>
+              <p className="text-xs sm:text-sm md:text-base">
                 You have <strong>{remainingUploads}</strong> free image
                 operations remaining. <br />
-                <span className="text-sm">
+                <span className="text-xs sm:text-sm">
                   (Combined limit for uploads and scans)
                 </span>
                 <br />

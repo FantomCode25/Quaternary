@@ -3,17 +3,25 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
-import { useState, useEffect } from "react"; // Add this import
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const Footer = () => {
   const [mounted, setMounted] = useState(false);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const router = useRouter();
 
   // Ensure component is mounted before rendering client-side content
   useEffect(() => {
     setMounted(true);
     setCurrentYear(new Date().getFullYear());
   }, []);
+
+  // Add this function to handle logo click
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    router.push('/');
+  };
 
   const socialLinks = [
     { icon: <FaFacebook />, url: "https://facebook.com", label: "Facebook" },
@@ -54,7 +62,11 @@ const Footer = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <Link href="/" className="flex items-center">
+              <Link 
+                href="/" 
+                className="flex cursor-pointer items-center hover:opacity-80 transition-opacity"
+                onClick={handleLogoClick}
+              >
                 <img src="/logo.png" alt="Logo" className="h-24 w-auto" />
               </Link>
               <p className="text-gray-400 mb-4">
