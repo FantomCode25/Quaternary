@@ -23,318 +23,224 @@ const HeroSection = () => {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isCameraInitializing, setIsCameraInitializing] = useState(false);
 
-  // State for tracking uploads and showing auth modals
   const [showUnauthorizedDialog, setShowUnauthorizedDialog] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
 
-  // Add useEffect to detect when video is ready
-  useEffect(() => {
-    if (videoRef.current && showCamera) {
-      const handleVideoReady = () => {
-        console.log("Video stream is ready for capture");
-        setIsCameraReady(true);
-      };
-
-      videoRef.current.addEventListener("loadeddata", handleVideoReady);
-
-      return () => {
-        videoRef.current?.removeEventListener("loadeddata", handleVideoReady);
-      };
-    }
-  }, [showCamera, videoRef.current]);
-
-  // Add this useEffect for better camera readiness detection
   useEffect(() => {
     if (videoRef.current && showCamera) {
       const video = videoRef.current;
-
-      // Multiple event listeners to detect readiness
       const events = ["loadeddata", "loadedmetadata", "playing"];
-
       const handleVideoReady = () => {
-        // Only set ready if dimensions are available
         if (video.videoWidth > 0 && video.videoHeight > 0) {
-          console.log("Video stream is ready for capture", {
-            width: video.videoWidth,
-            height: video.videoHeight,
-          });
           setIsCameraReady(true);
         }
       };
 
-      // Add a play call to make sure video starts
       const attemptPlay = async () => {
-        try {
-          await video.play();
-        } catch (err) {
-          console.error("Error playing video", err);
-        }
+        try { await video.play(); } catch (err) { console.error("Error playing video", err); }
       };
 
-      // Add fallback timeout to check if video is ready
       const readyTimeout = setTimeout(() => {
         if (video.videoWidth > 0 && video.videoHeight > 0) {
           setIsCameraReady(true);
-          console.log("Camera ready detected by timeout fallback");
         }
       }, 3000);
 
-      // Add all event listeners
-      events.forEach((event) =>
-        video.addEventListener(event, handleVideoReady)
-      );
-
-      // Initial play attempt
+      events.forEach((event) => video.addEventListener(event, handleVideoReady));
       attemptPlay();
 
       return () => {
-        events.forEach((event) =>
-          video.removeEventListener(event, handleVideoReady)
-        );
+        events.forEach((event) => video.removeEventListener(event, handleVideoReady));
         clearTimeout(readyTimeout);
       };
     } else {
-      // Reset when camera is turned off
       setIsCameraReady(false);
     }
   }, [showCamera, videoRef.current]);
 
-  // Modify handleScanImage to use a two-step approach
-  const handleScanImage = async () => {
-    // Check if user can upload
-    if (!canUpload()) {
-      setShowUnauthorizedDialog(true);
-      return;
-    }
-
-    // First, show the camera UI (this will render the video element)
-    setShowCamera(true);
-    setIsCameraInitializing(true);
-    setIsCameraReady(false);
-  };
-
-  // Add a separate useEffect to handle camera initialization after the UI is rendered
   useEffect(() => {
-    // Only run this effect when the camera UI is showing but stream hasn't been initialized
     if (showCamera && isCameraInitializing) {
       const initializeCamera = async () => {
         try {
-          console.log("Initializing camera stream...");
-          const constraints = {
-            video: true,
-            audio: false,
-          };
-
-          const stream = await navigator.mediaDevices.getUserMedia(constraints);
-          console.log("Camera stream obtained successfully");
-
-          // Set the stream in state
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
           setCameraStream(stream);
-
-          // Now we can safely access videoRef because the video element is in the DOM
           if (videoRef.current) {
-            console.log("Setting video source object");
             videoRef.current.srcObject = stream;
-
-            // Try to play the video
-            try {
-              await videoRef.current.play();
-              console.log("Video playback started");
-            } catch (e) {
-              console.error("Error playing video:", e);
-            }
-          } else {
-            console.warn("Video element not available after showing camera UI");
+            try { await videoRef.current.play(); } catch (e) { console.error("Error playing video:", e); }
           }
-
-          // Camera initialization complete
           setIsCameraInitializing(false);
         } catch (error) {
-          console.error("Error accessing camera:", error);
-          alert(
-            "Unable to access camera. Please make sure you have granted camera permissions."
-          );
-          // Reset states on error
+          alert("Unable to access camera. Please check permissions.");
           setShowCamera(false);
           setIsCameraInitializing(false);
         }
       };
-
       initializeCamera();
     }
   }, [showCamera, isCameraInitializing]);
 
-  // Add a separate function for capturing the image
   const captureImage = async () => {
-    // Double-check permission before proceeding
-    if (!canUpload()) {
+    if (!canUpload() || !videoRef.current) {
       setShowUnauthorizedDialog(true);
       setShowCamera(false);
       stopCamera();
       return;
     }
 
-    if (videoRef.current) {
-      // Make sure video is playing and has dimensions
-      if (
-        videoRef.current.videoWidth === 0 ||
-        videoRef.current.videoHeight === 0
-      ) {
-        alert(
-          "Camera stream not ready yet. Please wait a moment and try again."
-        );
-        return;
-      }
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-      const canvas = document.createElement("canvas");
-      // Set canvas size to match video dimensions
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
+    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        // Draw the current video frame to the canvas
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    try {
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => blob && resolve(blob), 'image/jpeg');
+      });
 
-        try {
-          // Convert canvas to blob
-          const blob = await new Promise<Blob>((resolve) => {
-            canvas.toBlob((blob) => {
-              if (blob) resolve(blob);
-            }, 'image/jpeg');
-          });
+      // Send to Go Server (S3 upload)
+      const goFormData = new FormData();
+      goFormData.append("image", blob, "captured.jpg");
+      const goUploadResponse = await fetch("http://localhost:8080/upload", {
+        method: "POST",
+        body: goFormData,
+      });
+      const goData = await goUploadResponse.json();
 
-          // Create FormData and append the image
-          const formData = new FormData();
-          formData.append('file', blob, 'captured.jpg');
+      // Send to Flask Server
+      const flaskFormData = new FormData();
+      flaskFormData.append("file", blob, "captured.jpg");
+      const flaskResponse = await fetch("http/upload", {
+        method: "POST",
+        body: flaskFormData,
+      });
+      const flaskData = await flaskResponse.json();
 
-          // Send to Flask server
-          const response = await fetch('http://127.0.0.1:5000/upload', {
-            method: 'POST',
-            body: formData
-          });
+      setCapturedImage(URL.createObjectURL(blob));
+      setShowCamera(false);
+      stopCamera();
+      decrementUploads();
 
-          if (!response.ok) {
-            throw new Error('Failed to process image');
-          }
+      const successMessage = `
+        🎉 Image Processed Successfully! 🎉
+        
+        📸 Source: Camera Capture
+        📦 S3 URL: ${goData.image_url}
+        🗑️ Predicted Waste: ${flaskData.predicted_class}
+        💯 Confidence: ${flaskData.confidence.toFixed(2)}%
+        ♻️ Categories:
+        ${flaskData.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
+      `;
+      alert(successMessage);
 
-          const result = await response.json();
-          console.log('ML Prediction Result:', result);
-          
-          // Set the captured image and ML result
-          setCapturedImage(URL.createObjectURL(blob));
-          setShowCamera(false);
-          stopCamera();
-          
-          // Decrement uploads after successful capture
-          decrementUploads();
-
-          // Show success message with prediction result
-          const successMessage = `
-            🎉 Image Successfully Processed! 🎉
-            
-            📸 Image: Captured Image
-            🗑️ Predicted Waste Type: ${result.predicted_class}
-            💯 Confidence: ${result.confidence.toFixed(2)}%
-            
-            ♻️ Recycling Categories:
-            ${result.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
-          `;
-          
-          alert(successMessage);
-
-        } catch (error) {
-          console.error('Error capturing/processing image:', error);
-          alert('Failed to process image. Please try again.');
-        }
-      }
-    }
-  };
-
-  const stopCamera = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
-      setCameraStream(null);
-    }
-  };
-
-  const handleUploadImage = () => {
-    // Check if user can upload
-    if (!canUpload()) {
-      setShowUnauthorizedDialog(true);
-      return;
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+    } catch (error) {
+      console.error("Error processing image:", error);
+      alert("Failed to process image. Please try again.");
     }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('File change event triggered');
     const file = e.target.files?.[0];
-    
-    if (!file) {
-      console.log('No file selected');
+    if (!file) return;
+
+    try {
+      // Send to Go Server (S3 upload)
+      const goFormData = new FormData();
+      goFormData.append("image", file);
+      const goUploadResponse = await fetch("http://localhost:8080/upload", {
+        method: "POST",
+        body: goFormData,
+      });
+      const goData = await goUploadResponse.json();
+
+      // Send to Flask Server
+      const flaskFormData = new FormData();
+      flaskFormData.append("file", file);
+      const flaskResponse = await fetch("http://127.0.0.1:5000/upload", {
+        method: "POST",
+        body: flaskFormData,
+      });
+      const flaskData = await flaskResponse.json();
+
+      setCapturedImage(URL.createObjectURL(file));
+      decrementUploads();
+
+      const successMessage = `
+        🎉 File Uploaded Successfully! 🎉
+        
+        📸 File Name: ${file.name}
+        📦 S3 URL: ${goData.image_url}
+        🗑️ Predicted Waste: ${flaskData.predicted_class}
+        💯 Confidence: ${flaskData.confidence.toFixed(2)}%
+        ♻️ Categories:
+        ${flaskData.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
+      `;
+      alert(successMessage);
+
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload image. Please try again.");
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!capturedImage) {
+      alert("Please upload or capture an image first");
       return;
     }
 
-    console.log('Selected file:', {
-      name: file.name,
-      type: file.type,
-      size: file.size
-    });
-
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      console.log('Sending request to Flask server...');
-      const response = await fetch('http://127.0.0.1:5000/upload', {
-        method: 'POST',
-        body: formData
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
+
+      // Send to Go Server for analysis
+      const goAnalyzeForm = new FormData();
+      goAnalyzeForm.append("image", blob);
+      const goAnalyzeResponse = await fetch("http://localhost:8080/analyze", {
+        method: "POST",
+        body: goAnalyzeForm,
+      });
+      const goData = await goAnalyzeResponse.json();
+
+      // Send to Flask Server
+      const flaskFormData = new FormData();
+      flaskFormData.append("file", blob);
+      await fetch("http://127.0.0.1:5000/upload", {
+        method: "POST",
+        body: flaskFormData,
       });
 
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error:', errorText);
-        throw new Error(`Upload failed: ${response.status} ${errorText}`);
-      }
-
-      const result = await response.json();
-      console.log('Server response:', result);
-      
-      if (result.success) {
-        // Set the uploaded image
-        setCapturedImage(URL.createObjectURL(file));
-        
-        // Decrement uploads after successful upload
-        decrementUploads();
-
-        // Show success message with prediction result
-        const successMessage = `
-          🎉 Image Successfully Processed! 🎉
-          
-          📸 Image: ${file.name}
-          🗑️ Predicted Waste Type: ${result.predicted_class}
-          💯 Confidence: ${result.confidence.toFixed(2)}%
-          
-          ♻️ Recycling Categories:
-          ${result.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
-        `;
-        
-        alert(successMessage);
-      } else {
-        throw new Error('Failed to process image');
-      }
-      
+      alert(`Advanced Analysis Result:\n${JSON.stringify(goData, null, 2)}`);
     } catch (error) {
-      console.error('Error details:', error);
-      alert('Failed to process image. Please check console for details.');
+      console.error("Analysis error:", error);
+      alert("Failed to analyze image. Please try again.");
     }
+  };
+
+  const stopCamera = () => {
+    cameraStream?.getTracks().forEach(track => track.stop());
+    setCameraStream(null);
+  };
+
+  const handleScanImage = async () => {
+    if (!canUpload()) {
+      setShowUnauthorizedDialog(true);
+      return;
+    }
+    setShowCamera(true);
+    setIsCameraInitializing(true);
+    setIsCameraReady(false);
+  };
+
+  const handleUploadImage = () => {
+    if (!canUpload()) {
+      setShowUnauthorizedDialog(true);
+      return;
+    }
+    fileInputRef.current?.click();
   };
 
   const handleChromeExtension = () => {
@@ -342,68 +248,44 @@ const HeroSection = () => {
   };
 
   return (
-    <div
-      id="hero"
-      className="relative h-screen w-full backdrop-blur-lg bg-gradient-to-b from-green-900/10 via-teal-900/70 to-green-900/40 overflow-hidden pt-16"
-    >
-      {/* Background elements */}
+    <div id="hero" className="relative h-screen w-full backdrop-blur-lg bg-gradient-to-b from-green-900/10 via-teal-900/70 to-green-900/40 overflow-hidden pt-16">
       <div className="absolute mt-16 inset-0">
         <Canvas>
           <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={1} />
           <Earth3D scale={1.3} />
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            enableRotate={false}
-            rotateSpeed={0.5}
-            maxPolarAngle={Math.PI / 2}
-            minPolarAngle={Math.PI / 2}
-          />
+          <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} rotateSpeed={0.5} />
         </Canvas>
       </div>
 
-      {/* Camera view */}
       {showCamera && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-90">
           <div className="relative w-full max-w-[640px] h-[480px] bg-gray-800 rounded-lg overflow-hidden">
-            {/* Key changes: add key prop and explicit styles */}
             <video
               key="camera-video"
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              style={{
-                display: "block",
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
               className="rounded-lg"
+              style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
             />
             {(isCameraInitializing || !isCameraReady) && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
                 <p className="text-white ml-4">
-                  {isCameraInitializing
-                    ? "Initializing camera..."
-                    : "Preparing stream..."}
+                  {isCameraInitializing ? "Initializing camera..." : "Preparing stream..."}
                 </p>
               </div>
             )}
           </div>
-          {/* Button controls */}
           <div className="mt-4 flex space-x-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setShowCamera(false);
-                stopCamera();
-              }}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-lg"
+              onClick={() => { setShowCamera(false); stopCamera(); }}
+              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
             >
               Cancel
             </motion.button>
@@ -412,10 +294,9 @@ const HeroSection = () => {
               whileTap={isCameraReady ? { scale: 0.95 } : {}}
               onClick={captureImage}
               disabled={!isCameraReady}
-              className={`px-6 py-3 text-white rounded-lg transition-colors duration-200 shadow-lg ${isCameraReady
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-gray-500 cursor-not-allowed"
-                }`}
+              className={`px-6 py-3 text-white rounded-lg shadow-lg ${
+                isCameraReady ? "bg-green-600 hover:bg-green-700" : "bg-gray-500 cursor-not-allowed"
+              }`}
             >
               {isCameraReady ? "Capture" : "Waiting for camera..."}
             </motion.button>
@@ -423,27 +304,23 @@ const HeroSection = () => {
         </div>
       )}
 
-      {/* Captured/Uploaded image preview */}
       {capturedImage && !showCamera && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-90">
-          <img
-            src={capturedImage}
-            alt="Captured"
-            className="max-w-full max-h-[70vh] rounded-lg"
-          />
+          <img src={capturedImage} alt="Captured" className="max-w-full max-h-[70vh] rounded-lg" />
           <div className="mt-4 flex space-x-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setCapturedImage(null)}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 shadow-lg"
+              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-lg"
             >
               Close
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg"
+              onClick={handleAnalyze}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-lg"
             >
               Analyze
             </motion.button>
@@ -451,134 +328,44 @@ const HeroSection = () => {
         </div>
       )}
 
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-      />
+      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="mb-2"
-        >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="relative"
-          >
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8 }} className="mb-2">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative">
             <motion.h1 
-              initial={{ 
-                opacity: 0, 
-                y: -50,
-                scale: 0.5,
-                rotate: -10
-              }}
-              animate={{ 
-                opacity: 1, 
-                y: 0,
-                scale: 1,
-                rotate: 0
-              }}
-              transition={{ 
-                duration: 1.2,
-                type: "spring",
-                stiffness: 100,
-                damping: 10,
-                delay: 0.2
-              }}
+              initial={{ opacity: 0, y: -50, scale: 0.5, rotate: -10 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+              transition={{ duration: 1.2, type: "spring", stiffness: 100, damping: 10, delay: 0.2 }}
               className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white mb-12 drop-shadow-lg relative z-10 tracking-tight"
-              style={{ 
-                fontFamily: "'Montserrat', 'Poppins', sans-serif",
-                letterSpacing: "-0.02em"
-              }}
+              style={{ fontFamily: "'Montserrat', 'Poppins', sans-serif", letterSpacing: "-0.02em" }}
             >
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 1.0 }}
                 className="inline-block"
-                style={{ 
-                  fontFamily: "'Montserrat', 'Poppins', sans-serif",
-                  letterSpacing: "-0.03em"
-                }}
+                style={{ fontFamily: "'Montserrat', 'Poppins', sans-serif", letterSpacing: "-0.03em" }}
               >
                 Welcome to{" "}
                 <motion.span
                   initial={{ color: "#ffffff" }}
-                  animate={{ 
-                    color: ["#ffffff", "#4ade80", "#ffffff"],
-                    textShadow: [
-                      "0 0 0px rgba(74, 222, 128, 0)",
-                      "0 0 20px rgba(74, 222, 128, 0.8)",
-                      "0 0 0px rgba(74, 222, 128, 0)"
-                    ]
-                  }}
-                  transition={{ 
-                    duration: 2,
-                    delay: 0.5,
-                    repeat: Infinity,
-                    repeatDelay: 2
-                  }}
+                  animate={{ color: ["#ffffff", "#4ade80", "#ffffff"], textShadow: ["0 0 0px rgba(74, 222, 128, 0)", "0 0 20px rgba(74, 222, 128, 0.8)", "0 0 0px rgba(74, 222, 128, 0)"] }}
+                  transition={{ duration: 2, delay: 0.5, repeat: Infinity, repeatDelay: 2 }}
                   className="text-green-200 font-black"
-                  style={{ 
-                    fontFamily: "'Montserrat', 'Poppins', sans-serif",
-                    letterSpacing: "-0.03em"
-                  }}
                 >
                   3RVision
                 </motion.span>
                 !
               </motion.span>
             </motion.h1>
-            
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.2 }}
-              transition={{ 
-                duration: 1,
-                delay: 0.5,
-                type: "spring",
-                stiffness: 50
-              }}
-              className="absolute -inset-4 bg-green-500/20 rounded-full blur-xl"
-            />
-            
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.15 }}
-              transition={{ 
-                duration: 1.2,
-                delay: 0.8,
-                type: "spring",
-                stiffness: 40
-              }}
-              className="absolute -inset-6 bg-blue-500/20 rounded-full blur-xl"
-            />
           </motion.div>
 
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              duration: 0.8,
-              delay: 0.3,
-              type: "spring",
-              stiffness: 100,
-              damping: 15
-            }}
+            transition={{ duration: 0.8, delay: 0.3, type: "spring", stiffness: 100, damping: 15 }}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg"
-            style={{ 
-              fontFamily: "'Montserrat', 'Poppins', sans-serif",
-              letterSpacing: "-0.01em"
-            }}
           >
             Redefining Resource Management
           </motion.h2>
@@ -587,28 +374,24 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-base sm:text-lg md:text-xl lg:text-xl text-white mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto drop-shadow-lg"
+            className="text-base sm:text-lg md:text-xl lg:text-xl text-white mb-8 max-w-2xl mx-auto drop-shadow-lg"
           >
             Empowering sustainable choices through AI-driven intelligence for
-            <span className="font-semibold"> Reuse</span>, <span className="font-semibold">Recycle</span> and <span className="font-semibold">Resale</span>.
+            <span className="font-semibold"> Reuse</span>,{" "}
+            <span className="font-semibold">Recycle</span> and{" "}
+            <span className="font-semibold">Resale</span>.
           </motion.p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex flex-col items-center justify-center gap-4"
-        >
-          {/* Buttons row */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleScanImage}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-lg"
             >
-              <FaCamera className="text-lg sm:text-xl" />
+              <FaCamera className="text-xl" />
               <span>{showCamera ? "Capture Image" : "Scan Item"}</span>
             </motion.button>
 
@@ -616,9 +399,9 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleUploadImage}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-lg"
             >
-              <FaUpload className="text-lg sm:text-xl" />
+              <FaUpload className="text-xl" />
               <span>Upload Image</span>
             </motion.button>
 
@@ -626,66 +409,27 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleChromeExtension}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-lg"
             >
-              <FaChrome className="text-lg sm:text-xl" />
-              <span>Chrome Extension</span>
+              <FaChrome className="text-xl" />
+              <span>Extension</span>
             </motion.button>
           </div>
 
-          {/* Keep only this message about remaining uploads */}
           {!user && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center bg-white/20 backdrop-blur-md rounded-lg p-2 mt-3 text-white max-w-md shadow-lg mx-4 sm:mx-auto"
-            >
-              <p className="text-xs sm:text-sm md:text-base">
-                You have <strong>{remainingUploads}</strong> free image
-                operations remaining. <br />
-                <span className="text-xs sm:text-sm">
-                  (Combined limit for uploads and scans)
-                </span>
-                <br />
-                Sign up or log in for unlimited access.
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/20 backdrop-blur-md rounded-lg p-2 mt-3 text-white max-w-md shadow-lg">
+              <p className="text-sm md:text-base">
+                You have <strong>{remainingUploads}</strong> free image operations remaining.<br />
+                <span className="text-xs sm:text-sm">Sign up for unlimited access</span>
               </p>
             </motion.div>
           )}
         </motion.div>
       </div>
 
-      {/* Auth Modals */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSwitchToSignup={() => {
-          setShowLoginModal(false);
-          setShowSignupModal(true);
-        }}
-      />
-
-      <SignupModal
-        isOpen={showSignupModal}
-        onClose={() => setShowSignupModal(false)}
-        onSwitchToLogin={() => {
-          setShowSignupModal(false);
-          setShowLoginModal(true);
-        }}
-      />
-
-      {/* Unauthorized Access Dialog */}
-      <UnauthorizedDialog
-        isOpen={showUnauthorizedDialog}
-        onClose={() => setShowUnauthorizedDialog(false)}
-        onLogin={() => {
-          setShowUnauthorizedDialog(false);
-          setShowLoginModal(true);
-        }}
-        onSignup={() => {
-          setShowUnauthorizedDialog(false);
-          setShowSignupModal(true);
-        }}
-      />
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} onSwitchToSignup={() => { setShowLoginModal(false); setShowSignupModal(true); }} />
+      <SignupModal isOpen={showSignupModal} onClose={() => setShowSignupModal(false)} onSwitchToLogin={() => { setShowSignupModal(false); setShowLoginModal(true); }} />
+      <UnauthorizedDialog isOpen={showUnauthorizedDialog} onClose={() => setShowUnauthorizedDialog(false)} onLogin={() => { setShowUnauthorizedDialog(false); setShowLoginModal(true); }} onSignup={() => { setShowUnauthorizedDialog(false); setShowSignupModal(true); }} />
     </div>
   );
 };
