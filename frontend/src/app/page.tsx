@@ -13,9 +13,9 @@ export default function Home() {
   return (
     <main className="min-h-screen relative overflow-hidden">
       {/* Hero section background - Custom background, NO animated background */}
-      <div className="fixed inset-0 pointer-events-none z-0 h-screen">
+      <div className="fixed inset-0 pointer-events-none z-0 h-auto">
         <div
-          className="absolute top-0 left-0 w-full h-screen bg-gradient-to-b from-green-900/5 to-transparent animate-pulse"
+          className="absolute top-0 left-0 w-full h-screen bg-gradient-to-b from-green-900/50 to-transparent animate-pulse"
           style={{ animationDuration: "8s" }}
         ></div>
         <div
