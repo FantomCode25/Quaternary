@@ -329,7 +329,7 @@ const ChatBot = () => {
     : messages;
 
   return (
-    <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 lg:bottom-16 lg:right-16 z-50">
+    <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 lg:bottom-16 lg:right-16 z-[9999]">
       <div className="relative">
         <motion.button
           onClick={() => {
@@ -338,7 +338,7 @@ const ChatBot = () => {
           }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-green-200 text-white shadow-lg flex items-center justify-center text-xl sm:text-2xl hover:shadow-xl transition-all animate-pulse-green relative z-[9999]"
+          className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center text-xl sm:text-2xl hover:shadow-xl transition-all animate-pulse-green relative z-[9999]"
           style={{
             boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
             transform: "translateZ(0)",
@@ -359,7 +359,7 @@ const ChatBot = () => {
               darkMode ? "bg-gray-900 text-gray-100" : "bg-white text-gray-800"
             } rounded-lg shadow-2xl w-[90vw] sm:w-[350px] md:w-[380px] lg:w-[400px] h-[80vh] sm:h-[500px] md:h-[550px] lg:h-[600px] overflow-hidden border ${
               darkMode ? "border-gray-700" : "border-green-200"
-            } transform perspective-1000 absolute bottom-20 right-0`}
+            } transform perspective-1000 absolute bottom-20 right-0 z-[9999]`}
             style={{
               boxShadow:
                 "0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.2)",
