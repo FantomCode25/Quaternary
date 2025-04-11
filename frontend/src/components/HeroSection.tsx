@@ -606,7 +606,7 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleScanImage}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
             >
               <FaCamera className="text-lg sm:text-xl" />
               <span>{showCamera ? "Capture Image" : "Scan Item"}</span>
@@ -616,7 +616,7 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleUploadImage}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
             >
               <FaUpload className="text-lg sm:text-xl" />
               <span>Upload Image</span>
@@ -626,7 +626,7 @@ const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleChromeExtension}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-green-600/80 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-lg text-sm sm:text-base"
             >
               <FaChrome className="text-lg sm:text-xl" />
               <span>Chrome Extension</span>
