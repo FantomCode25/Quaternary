@@ -4,4 +4,4 @@ team members names:
 - Khushi Agrawal (Team Leader)
 - Arpit Srivastava
 - Naman Raj
-- Sheryansh Pathak
+- Shreyansh Pathak
