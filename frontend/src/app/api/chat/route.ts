@@ -3,7 +3,14 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
-const genAI = new GoogleGenerativeAI('AIzaSyAiboOEzf7IJhuuL99QYnTNOdjA9R0UsCY');
+// Check if API key is available
+if (!process.env.GEMINI_API_KEY) {
+  console.error('GEMINI_API_KEY is not defined in environment variables');
+  throw new Error('Missing Gemini API key');
+}
+
+// Use environment variable instead of hardcoded key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Load the bot instructions from the MD file
 const getBotInstructions = () => {
