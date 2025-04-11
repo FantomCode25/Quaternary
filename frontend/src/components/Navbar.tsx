@@ -96,7 +96,7 @@ const Navbar = () => {
               ? "bg-green-100 backdrop-blur-md shadow-md"
               : "bg-transparent"
           } 
-          ${isCommunityPage ? "bg-green-100 backdrop-blur-md shadow-md" : ""}`}
+          `}
       >
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">

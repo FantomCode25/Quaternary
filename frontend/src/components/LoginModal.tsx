@@ -9,9 +9,15 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToSignup: () => void;
+  onSuccess?: () => void; // Add this optional prop
 }
 
-const LoginModal = ({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) => {
+const LoginModal = ({
+  isOpen,
+  onClose,
+  onSwitchToSignup,
+  onSuccess,
+}: LoginModalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,16 +31,17 @@ const LoginModal = ({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) => {
     setError("");
 
     try {
-      const result = await login(email, password);
-      if (result.success) {
-        onClose();
-      } else {
-        setError(result.error || "Login failed");
-      }
-    } catch (error) {
-      setError("An unexpected error occurred");
-    } finally {
+      await login(email, password);
       setIsLoading(false);
+      onClose();
+
+      // Call onSuccess if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err) {
+      setIsLoading(false);
+      setError("Invalid email or password");
     }
   };
 

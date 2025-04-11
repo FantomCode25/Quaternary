@@ -9,12 +9,14 @@ interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToLogin: () => void;
+  onSuccess?: () => void; // Add this optional prop
 }
 
 const SignupModal = ({
   isOpen,
   onClose,
   onSwitchToLogin,
+  onSuccess,
 }: SignupModalProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -47,6 +49,11 @@ const SignupModal = ({
       const result = await register(name, email, password);
       if (result.success) {
         onClose();
+
+        // Call onSuccess if provided
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         setError(result.error || "Registration failed");
       }
