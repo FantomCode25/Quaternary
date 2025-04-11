@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -160,16 +161,63 @@ func handleAnalyze(c *gin.Context) {
 		return
 	}
 
-	// Log that we received the image
-	log.Printf("Received image: %s (%d bytes)", file.Filename, len(imageData))
+	log.Printf("Processing image: %s (size: %d bytes)", file.Filename, len(imageData))
 
-	// Return success message
+	// Get categories from Flask server
+	flaskResponse, err := getCategoriesFromFlask(imageData)
+	if err != nil {
+		log.Printf("Warning: Flask server error: %v", err)
+		flaskResponse = &FlaskResponse{
+			Categories: []string{"general waste"},
+		}
+	}
+
+	log.Printf("Categories from Flask: %v", flaskResponse.Categories)
+
+	// Analyze with Gemini
+	analysisResponse, err := analyzeWithGemini(flaskResponse.Categories, imageData)
+	if err != nil {
+		log.Printf("Gemini analysis error: %v", err)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Analysis completed with limited results",
+			"analysis": AnalysisResponse{
+				Resalable: struct {
+					IsResalable bool     `json:"is_resalable"`
+					Platforms   []string `json:"platforms"`
+				}{
+					IsResalable: false,
+					Platforms:   []string{"Analysis unavailable"},
+				},
+				Recyclable: struct {
+					IsRecyclable bool     `json:"is_recyclable"`
+					Centers      []string `json:"centers"`
+				}{
+					IsRecyclable: false,
+					Centers:      []string{"Please check local centers"},
+				},
+				Reusable: struct {
+					IsReusable bool     `json:"is_reusable"`
+					Ways       []string `json:"ways"`
+				}{
+					IsReusable: false,
+					Ways:       []string{"Analysis unavailable"},
+				},
+				Biodegradable: false,
+			},
+			"categories": flaskResponse.Categories,
+		})
+		return
+	}
+
+	// Print the analysis response
+	analysisJSON, _ := json.MarshalIndent(analysisResponse, "", "  ")
+	log.Printf("Gemini Analysis Response:\n%s", string(analysisJSON))
+
+	// Return successful response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Image is successfully sent to Gemini API",
-		"details": gin.H{
-			"filename": file.Filename,
-			"size":     len(imageData),
-		},
+		"message":    "Analysis completed successfully",
+		"analysis":   analysisResponse,
+		"categories": flaskResponse.Categories,
 	})
 }
 
@@ -181,7 +229,7 @@ func getCategoriesFromFlask(imageData []byte) (*FlaskResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if _, err := part.Write(imageData); err != nil {
 		return nil, err
 	}
@@ -210,31 +258,67 @@ func getCategoriesFromFlask(imageData []byte) (*FlaskResponse, error) {
 
 func analyzeWithGemini(categories []string, imageData []byte) (*AnalysisResponse, error) {
 	ctx := context.Background()
-	model := geminiClient.GenerativeModel("gemini-pro-vision")
+	model := geminiClient.GenerativeModel("gemini-2.0-flash")
 
-	// Prepare the prompt
-	prompt := fmt.Sprintf(`Analyze this image and provide detailed information about its sustainability aspects based on these categories: %v.
-	Please determine:
-	1. If it's resalable, suggest appropriate platforms (like OLX, Quickr, Cashify)
-	2. If it's recyclable, suggest nearby recycling centers in Chaithanya Layout, 8th Phase, J. P. Nagar, Bengaluru
-	3. If it's reusable, suggest creative ways to reuse it
-	4. Whether it's biodegradable
+	// Prepare a strict JSON template prompt
+	prompt := fmt.Sprintf(`Analyze this image and the following waste categories: %v
 
-	Provide the response in a structured JSON format.`, categories)
+Respond with ONLY a JSON object in this exact format:
+{
+	"resalable": {
+		"is_resalable": true/false,
+		"platforms": ["platform1", "platform2"]
+	},
+	"recyclable": {
+		"is_recyclable": true/false,
+		"centers": ["center1", "center2"]
+	},
+	"reusable": {
+		"is_reusable": true/false,
+		"ways": ["way1", "way2"]
+	},
+	"biodegradable": false
+}
+
+Guidelines:
+1. For resalable items: Suggest real platforms like OLX, Quickr, or Facebook Marketplace
+2. For recyclable items: Only list real recycling centers in Chaithanya Layout, 8th Phase, J. P. Nagar, Bengaluru
+3. For reusable items: Suggest practical ways to reuse based on the item type
+4. For biodegradable: Set true/false based on material composition
+
+DO NOT add any text before or after the JSON.`, categories)
+
+	log.Printf("Sending prompt to Gemini:\n%s", prompt)
 
 	// Create image data with proper MIME type
 	imgData := genai.ImageData("image/jpeg", imageData)
 
 	// Generate content
-	resp, err := model.GenerateContent(ctx, imgData, genai.Text(prompt))
+	resp, err := model.GenerateContent(ctx, genai.Text(prompt), imgData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate content: %v", err)
 	}
 
+	if len(resp.Candidates) == 0 {
+		return nil, fmt.Errorf("no response generated from Gemini")
+	}
+
+	// Get response text and ensure it's a string
+	responseText := string(resp.Candidates[0].Content.Parts[0].(genai.Text))
+	log.Printf("Raw Gemini Response:\n%s", responseText)
+
+	// Try to find JSON content
+	start := strings.Index(responseText, "{")
+	end := strings.LastIndex(responseText, "}")
+	if start >= 0 && end >= 0 && end > start {
+		responseText = responseText[start : end+1]
+		log.Printf("Extracted JSON:\n%s", responseText)
+	}
+
 	// Parse the response into our AnalysisResponse struct
 	var analysisResponse AnalysisResponse
-	if err := json.Unmarshal([]byte(resp.Candidates[0].Content.Parts[0].(genai.Text)), &analysisResponse); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %v", err)
+	if err := json.Unmarshal([]byte(responseText), &analysisResponse); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v\nResponse text: %s", err, responseText)
 	}
 
 	return &analysisResponse, nil

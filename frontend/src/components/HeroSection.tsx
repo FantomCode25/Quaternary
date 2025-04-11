@@ -206,12 +206,12 @@ const HeroSection = () => {
       const goData = await goAnalyzeResponse.json();
 
       // Send to Flask Server
-      const flaskFormData = new FormData();
-      flaskFormData.append("file", blob);
-      await fetch("http://127.0.0.1:5000/upload", {
-        method: "POST",
-        body: flaskFormData,
-      });
+      // const flaskFormData = new FormData();
+      // flaskFormData.append("file", blob);
+      // await fetch("http://127.0.0.1:5000/upload", {
+      //   method: "POST",
+      //   body: flaskFormData,
+      // });
 
       alert(`Advanced Analysis Result:\n${JSON.stringify(goData, null, 2)}`);
     } catch (error) {
