@@ -99,14 +99,14 @@ const Navbar = () => {
           `}
       >
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
+          <div className="flex justify-between items-center h-14 md:h-16">
             <Link href="/" className="flex items-center">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center"
               >
-                <img src="/logo.png" alt="Logo" className="md:h-20 h-16 mt-3 w-auto" />
+                <img src="/logo.png" alt="Logo" className="md:h-20 h-18 mt-3 w-auto" />
               </motion.div>
             </Link>
 
