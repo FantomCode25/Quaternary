@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Eco-Friendly Product Filter</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>3RVision - Eco-Friendly Product Filter</h1>
+        <button id="closeButton" class="close-button">Close</button>
+      </div>
+
+      <div class="status-container">
+        <span>Status:</span>
+        <span id="status" class="status-off">OFF</span>
+        <label class="switch">
+          <input type="checkbox" id="toggleSwitch" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="options">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search for eco-friendly products..."
+          />
+        </div>
+      </div>
+
+      <div class="info">
+        <p>
+          This extension filters e-commerce sites to show only eco-friendly
+          products.
+        </p>
+        <p>Toggle the switch to enable/disable filtering.</p>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

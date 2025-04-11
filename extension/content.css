@@ -1,0 +1,213 @@
+/* Content script styles */
+.r3vision-material-display {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #333;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  z-index: 1000;
+  width: 300px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: none;
+  line-height: 1.4;
+  transition: all 0.3s ease;
+  max-height: 400px;
+  overflow-y: auto;
+  transform: translateY(10px);
+  margin: 10px;
+}
+
+/* Ensure proper positioning on different sites */
+.s-result-item .r3vision-material-display,
+._1AtVbE .r3vision-material-display,
+.product-base .r3vision-material-display,
+.jm-col-4 .r3vision-material-display,
+.product-item .r3vision-material-display {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+/* Adjust for Flipkart's layout */
+._1AtVbE {
+  position: relative !important;
+}
+
+/* Adjust for Jiomart's layout */
+.jm-col-4,
+.product-item {
+  position: relative !important;
+}
+
+/* Ensure proper z-index layering */
+.r3vision-material-display {
+  z-index: 9999 !important;
+}
+
+/* Make sure the display is visible above other elements */
+.r3vision-material-display[style*="display: block"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .r3vision-material-display {
+    width: 280px;
+    max-height: 350px;
+    font-size: 12px;
+    padding: 12px;
+  }
+}
+
+/* Ensure proper scrolling */
+.r3vision-material-display::-webkit-scrollbar {
+  width: 6px;
+}
+
+.r3vision-material-display::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.r3vision-material-display::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.r3vision-material-display::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Product card styles */
+.s-result-item,
+._1AtVbE,
+.product-base,
+.jm-col-4,
+.product-item {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Show button styles */
+.r3vision-show-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.r3vision-show-button:hover {
+  background-color: rgba(46, 125, 50, 0.1);
+}
+
+.r3vision-show-button img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* No products message */
+#r3vision-no-products-message {
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin: 20px auto;
+  color: #6c757d;
+  max-width: 80%;
+}
+
+/* Material badges */
+.r3vision-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.r3vision-badge.plastic {
+  background: rgba(198, 40, 40, 0.1);
+  color: #c62828;
+}
+
+.r3vision-badge.biodegradable {
+  background: rgba(46, 125, 50, 0.1);
+  color: #2e7d32;
+}
+
+.r3vision-badge.recyclable {
+  background: rgba(33, 150, 243, 0.1);
+  color: #1565c0;
+}
+
+/* Progress bars */
+.r3vision-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.r3vision-progress-bar-inner {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.r3vision-progress-bar-inner.plastic {
+  background: rgba(198, 40, 40, 0.3);
+}
+
+.r3vision-progress-bar-inner.biodegradable {
+  background: rgba(46, 125, 50, 0.3);
+}
+
+.r3vision-progress-bar-inner.recyclable {
+  background: rgba(33, 150, 243, 0.3);
+}
+
+/* Ensure proper display on mobile */
+@media (max-width: 480px) {
+  .r3vision-material-display {
+    width: 260px;
+    max-height: 300px;
+    font-size: 11px;
+    padding: 10px;
+  }
+
+  .r3vision-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .r3vision-show-button img {
+    width: 24px;
+    height: 24px;
+  }
+}

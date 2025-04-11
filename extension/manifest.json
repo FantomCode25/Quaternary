@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "3RVision - Eco-Friendly Product Filter",
+  "version": "1.0",
+  "description": "Helps identify eco-friendly products by analyzing material composition",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.com/*",
+        "*://*.amazon.in/*",
+        "*://*.amazon.co.uk/*",
+        "*://*.amazon.de/*",
+        "*://*.amazon.ca/*",
+        "*://*.flipkart.com/*",
+        "*://*.myntra.com/*",
+        "*://*.jiomart.com/*",
+        "*://*.ebay.com/*",
+        "*://*.walmart.com/*",
+        "*://*.etsy.com/*",
+        "*://*.target.com/*",
+        "*://*.shopify.com/*",
+        "*://*.snapdeal.com/*",
+        "*://*.ajio.com/*",
+        "*://*.nykaa.com/*",
+        "*://*.purplle.com/*",
+        "*://*.firstcry.com/*",
+        "*://*.meesho.com/*",
+        "*://*.shopclues.com/*",
+        "*://*.paytmmall.com/*",
+        "*://*.tatacliq.com/*",
+        "*://*.reliancedigital.in/*",
+        "*://*.croma.com/*",
+        "*://*.vijaysales.com/*"
+      ],
+      "js": ["content.js", "scraping.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "host_permissions": ["*://*/*"],
+  "icons": {
+    "16": "icons/logo.png",
+    "48": "icons/logo.png",
+    "128": "icons/logo.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/logo.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
