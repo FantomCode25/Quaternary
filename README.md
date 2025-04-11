@@ -1,4 +1,4 @@
-# This is Team Quatenary
+# This is Team Quaternary
 
 teme members names:
 - Khushi Agrawal (Team Leader)
