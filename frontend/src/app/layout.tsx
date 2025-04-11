@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="inter_59dee874-module__9CtR0q__className">
         <AuthProvider>{children}</AuthProvider>
         <ChatBotWrapper />
       </body>

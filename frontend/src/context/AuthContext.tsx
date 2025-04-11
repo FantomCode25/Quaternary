@@ -7,6 +7,7 @@ import React, {
   useContext,
   useCallback,
 } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 interface User {
   id: string;
@@ -39,6 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [remainingUploads, setRemainingUploads] = useState<number>(3);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Check if user is logged in on initial load
@@ -136,14 +139,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function logout() {
+  const logout = useCallback(async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
+      // Clear any auth tokens from localStorage
+      localStorage.removeItem("authToken");
+      // Any other cleanup
+
+      // Check if the user is on the community page when logging out
+      if (pathname === "/community") {
+        // Redirect to home page
+        router.push("/");
+      }
     } catch (error) {
       console.error("Logout error", error);
     }
-  }
+  }, [router, pathname]);
 
   const decrementUploads = useCallback(() => {
     if (!user && remainingUploads > 0) {

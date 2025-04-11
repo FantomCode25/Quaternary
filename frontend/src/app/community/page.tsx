@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -65,6 +66,15 @@ interface ApiPost {
 // Main Community Page component
 const CommunityPage = () => {
   const { user } = useAuth();
+  const router = useRouter();
+
+  // Fix the redirect implementation
+  useEffect(() => {
+    if (!user) {
+      router.push("/");
+    }
+  }, [user, router]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
