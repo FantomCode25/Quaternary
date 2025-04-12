@@ -415,7 +415,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.3, type: "spring", stiffness: 100, damping: 15 }}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 drop-shadow-lg"
           >
-            Redefining Resource Management
+            Revolutionizing Sustainability
           </motion.h2>
 
           <motion.p
