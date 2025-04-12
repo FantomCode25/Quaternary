@@ -11,6 +11,40 @@ import UnauthorizedDialog from "./UnauthorizedDialog";
 import LoginModal from "./LoginModal";
 import SignupModal from "./SignupModal";
 import { useRouter } from "next/navigation";
+import AnalysisResultModal from "./AnalysisResultModal";
+
+interface AnalysisResult {
+  imageUrl: string;
+  s3Url: string;
+  predictedClass: string;
+  confidence: number;
+  analysis: {
+    resalable: {
+      is_resalable: boolean;
+      platforms: string[];
+      condition: string;
+      value: string;
+      tips: string;
+    };
+    recyclable: {
+      is_recyclable: boolean;
+      centers: string[];
+      material: string;
+      process: string;
+      impact: string;
+    };
+    reusable: {
+      is_reusable: boolean;
+      ways: string[];
+      durability: string;
+      benefits: string;
+      tutorial: string;
+    };
+    biodegradable: boolean;
+    time_to_degrade: string;
+    description: string;
+  };
+}
 
 const HeroSection = () => {
   const router = useRouter();
@@ -26,6 +60,9 @@ const HeroSection = () => {
   const [showUnauthorizedDialog, setShowUnauthorizedDialog] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
 
   useEffect(() => {
     if (videoRef.current && showCamera) {
@@ -113,28 +150,35 @@ const HeroSection = () => {
       // Send to Flask Server
       const flaskFormData = new FormData();
       flaskFormData.append("file", blob, "captured.jpg");
-      const flaskResponse = await fetch("http/upload", {
+      const flaskResponse = await fetch("http://127.0.0.1:5001/upload", {
         method: "POST",
         body: flaskFormData,
       });
       const flaskData = await flaskResponse.json();
+
+      // Get advanced analysis
+      const goAnalyzeForm = new FormData();
+      goAnalyzeForm.append("image", blob);
+      const goAnalyzeResponse = await fetch("http://localhost:8080/analyze", {
+        method: "POST",
+        body: goAnalyzeForm,
+      });
+      const analysisData = await goAnalyzeResponse.json();
 
       setCapturedImage(URL.createObjectURL(blob));
       setShowCamera(false);
       stopCamera();
       decrementUploads();
 
-      const successMessage = `
-        🎉 Image Processed Successfully! 🎉
-        
-        📸 Source: Camera Capture
-        📦 S3 URL: ${goData.image_url}
-        🗑️ Predicted Waste: ${flaskData.predicted_class}
-        💯 Confidence: ${flaskData.confidence.toFixed(2)}%
-        ♻️ Categories:
-        ${flaskData.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
-      `;
-      alert(successMessage);
+      // Set analysis result and show modal
+      setAnalysisResult({
+        imageUrl: URL.createObjectURL(blob),
+        s3Url: goData.url,
+        predictedClass: flaskData.predicted_class,
+        confidence: flaskData.confidence,
+        analysis: analysisData.analysis
+      });
+      setShowAnalysisModal(true);
 
     } catch (error) {
       console.error("Error processing image:", error);
@@ -159,26 +203,33 @@ const HeroSection = () => {
       // Send to Flask Server
       const flaskFormData = new FormData();
       flaskFormData.append("file", file);
-      const flaskResponse = await fetch("http://127.0.0.1:5000/upload", {
+      const flaskResponse = await fetch("http://127.0.0.1:5001/upload", {
         method: "POST",
         body: flaskFormData,
       });
       const flaskData = await flaskResponse.json();
 
+      // Get advanced analysis
+      const goAnalyzeForm = new FormData();
+      goAnalyzeForm.append("image", file);
+      const goAnalyzeResponse = await fetch("http://localhost:8080/analyze", {
+        method: "POST",
+        body: goAnalyzeForm,
+      });
+      const analysisData = await goAnalyzeResponse.json();
+
       setCapturedImage(URL.createObjectURL(file));
       decrementUploads();
 
-      const successMessage = `
-        🎉 File Uploaded Successfully! 🎉
-        
-        📸 File Name: ${file.name}
-        📦 S3 URL: ${goData.image_url}
-        🗑️ Predicted Waste: ${flaskData.predicted_class}
-        💯 Confidence: ${flaskData.confidence.toFixed(2)}%
-        ♻️ Categories:
-        ${flaskData.functional_categories.map((cat: string) => `• ${cat}`).join('\n')}
-      `;
-      alert(successMessage);
+      // Set analysis result and show modal
+      setAnalysisResult({
+        imageUrl: URL.createObjectURL(file),
+        s3Url: goData.url,
+        predictedClass: flaskData.predicted_class,
+        confidence: flaskData.confidence,
+        analysis: analysisData.analysis
+      });
+      setShowAnalysisModal(true);
 
     } catch (error) {
       console.error("Upload error:", error);
@@ -187,7 +238,7 @@ const HeroSection = () => {
   };
 
   const handleAnalyze = async () => {
-    if (!capturedImage) {
+    if (!capturedImage || !analysisResult) {
       alert("Please upload or capture an image first");
       return;
     }
@@ -203,17 +254,14 @@ const HeroSection = () => {
         method: "POST",
         body: goAnalyzeForm,
       });
-      const goData = await goAnalyzeResponse.json();
+      const analysisData = await goAnalyzeResponse.json();
 
-      // Send to Flask Server
-      // const flaskFormData = new FormData();
-      // flaskFormData.append("file", blob);
-      // await fetch("http://127.0.0.1:5000/upload", {
-      //   method: "POST",
-      //   body: flaskFormData,
-      // });
-
-      alert(`Advanced Analysis Result:\n${JSON.stringify(goData, null, 2)}`);
+      // Update only the analysis part while keeping other properties
+      setAnalysisResult({
+        ...analysisResult,
+        analysis: analysisData.analysis
+      });
+      setShowAnalysisModal(true);
     } catch (error) {
       console.error("Analysis error:", error);
       alert("Failed to analyze image. Please try again.");
@@ -430,6 +478,18 @@ const HeroSection = () => {
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} onSwitchToSignup={() => { setShowLoginModal(false); setShowSignupModal(true); }} />
       <SignupModal isOpen={showSignupModal} onClose={() => setShowSignupModal(false)} onSwitchToLogin={() => { setShowSignupModal(false); setShowLoginModal(true); }} />
       <UnauthorizedDialog isOpen={showUnauthorizedDialog} onClose={() => setShowUnauthorizedDialog(false)} onLogin={() => { setShowUnauthorizedDialog(false); setShowLoginModal(true); }} onSignup={() => { setShowUnauthorizedDialog(false); setShowSignupModal(true); }} />
+
+      {analysisResult && (
+        <AnalysisResultModal
+          isOpen={showAnalysisModal}
+          onClose={() => setShowAnalysisModal(false)}
+          imageUrl={analysisResult.imageUrl}
+          s3Url={analysisResult.s3Url}
+          predictedClass={analysisResult.predictedClass}
+          confidence={analysisResult.confidence}
+          analysis={analysisResult.analysis}
+        />
+      )}
     </div>
   );
 };

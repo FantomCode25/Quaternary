@@ -34,16 +34,27 @@ type AnalysisResponse struct {
 	Resalable struct {
 		IsResalable bool     `json:"is_resalable"`
 		Platforms   []string `json:"platforms"`
+		Condition   string   `json:"condition"`
+		Value       string   `json:"value"`
+		Tips        string   `json:"tips"`
 	} `json:"resalable"`
 	Recyclable struct {
 		IsRecyclable bool     `json:"is_recyclable"`
 		Centers      []string `json:"centers"`
+		Material     string   `json:"material"`
+		Process      string   `json:"process"`
+		Impact       string   `json:"impact"`
 	} `json:"recyclable"`
 	Reusable struct {
 		IsReusable bool     `json:"is_reusable"`
 		Ways       []string `json:"ways"`
+		Durability string   `json:"durability"`
+		Benefits   string   `json:"benefits"`
+		Tutorial   string   `json:"tutorial"`
 	} `json:"reusable"`
-	Biodegradable bool `json:"biodegradable"`
+	Biodegradable bool   `json:"biodegradable"`
+	TimeToDegrade string `json:"time_to_degrade"`
+	Description   string `json:"description"`
 }
 
 func init() {
@@ -184,25 +195,45 @@ func handleAnalyze(c *gin.Context) {
 				Resalable: struct {
 					IsResalable bool     `json:"is_resalable"`
 					Platforms   []string `json:"platforms"`
+					Condition   string   `json:"condition"`
+					Value       string   `json:"value"`
+					Tips        string   `json:"tips"`
 				}{
 					IsResalable: false,
 					Platforms:   []string{"Analysis unavailable"},
+					Condition:   "Unknown",
+					Value:       "Unknown",
+					Tips:        "Analysis unavailable",
 				},
 				Recyclable: struct {
 					IsRecyclable bool     `json:"is_recyclable"`
 					Centers      []string `json:"centers"`
+					Material     string   `json:"material"`
+					Process      string   `json:"process"`
+					Impact       string   `json:"impact"`
 				}{
 					IsRecyclable: false,
 					Centers:      []string{"Please check local centers"},
+					Material:     "Unknown",
+					Process:      "Unknown",
+					Impact:       "Unknown",
 				},
 				Reusable: struct {
 					IsReusable bool     `json:"is_reusable"`
 					Ways       []string `json:"ways"`
+					Durability string   `json:"durability"`
+					Benefits   string   `json:"benefits"`
+					Tutorial   string   `json:"tutorial"`
 				}{
 					IsReusable: false,
 					Ways:       []string{"Analysis unavailable"},
+					Durability: "Unknown",
+					Benefits:   "Unknown",
+					Tutorial:   "Analysis unavailable",
 				},
 				Biodegradable: false,
+				TimeToDegrade: "Unknown",
+				Description:   "Analysis unavailable",
 			},
 			"categories": flaskResponse.Categories,
 		})
@@ -267,25 +298,52 @@ Respond with ONLY a JSON object in this exact format:
 {
 	"resalable": {
 		"is_resalable": true/false,
-		"platforms": ["platform1", "platform2"]
+		"platforms": ["platform1", "platform2"],
+		"condition": "Detailed description of item condition",
+		"value": "Estimated value range",
+		"tips": "Tips for successful resale"
 	},
 	"recyclable": {
 		"is_recyclable": true/false,
-		"centers": ["center1", "center2"]
+		"centers": ["center1", "center2"],
+		"material": "Detailed material composition",
+		"process": "How this item is recycled",
+		"impact": "Environmental impact of recycling this item"
 	},
 	"reusable": {
 		"is_reusable": true/false,
-		"ways": ["way1", "way2"]
+		"ways": ["way1", "way2"],
+		"durability": "Expected durability for reuse",
+		"benefits": "Benefits of reusing this item",
+		"tutorial": "Brief steps for repurposing"
 	},
-	"biodegradable": false
+	"biodegradable": true/false,
+	"time_to_degrade": "Estimated time to biodegrade",
+	"description": "Comprehensive description of the item and its sustainability aspects"
 }
 
 Guidelines:
-1. For resalable items: Suggest real platforms like OLX, Quickr, or Facebook Marketplace
-2. For recyclable items: Only list real recycling centers in Chaithanya Layout, 8th Phase, J. P. Nagar, Bengaluru
-3. For reusable items: Suggest practical ways to reuse based on the item type
-4. For biodegradable: Set true/false based on material composition
+1. For resalable items:
+   - Suggest real platforms like OLX, Quickr, or Facebook Marketplace
+   - Provide realistic value estimates
+   - Include condition assessment and selling tips
 
+2. For recyclable items:
+   - Only list real recycling centers in Chaithanya Layout, 8th Phase, J. P. Nagar, Bengaluru
+   - Detail the material composition
+   - Explain the recycling process and environmental benefits
+
+3. For reusable items:
+   - Suggest practical and creative ways to reuse
+   - Include durability assessment
+   - Provide step-by-step repurposing guidance
+
+4. For biodegradable assessment:
+   - Base on material composition
+   - Include realistic degradation timeframe
+   - Explain environmental impact
+
+Provide detailed, practical information that would be helpful for users making sustainable decisions.
 DO NOT add any text before or after the JSON.`, categories)
 
 	log.Printf("Sending prompt to Gemini:\n%s", prompt)
